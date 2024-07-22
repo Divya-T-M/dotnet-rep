@@ -1,0 +1,766 @@
+﻿@model DemoProject.Models.Employee;
+@{
+    ViewData["Title"] = "Home Page";
+    
+    
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+    .pcs:after {
+        content: " pcs";
+    }
+
+    .cur:before {
+        content: "$";
+    }
+
+    .per:after {
+        content: "%";
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        padding: 0.2em 2em;
+    }
+
+    table {
+        width: 100%;
+    }
+
+        table th {
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+
+        table th,
+        table td {
+            padding: 0.4em;
+        }
+
+    th, td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: left;
+    }
+
+    table.fold-table > tbody > tr.view td,
+    table.fold-table > tbody > tr.view th {
+        cursor: pointer;
+    }
+
+        table.fold-table > tbody > tr.view td:first-child,
+        table.fold-table > tbody > tr.view th:first-child {
+            position: relative;
+            padding-left: 20px;
+        }
+
+            table.fold-table > tbody > tr.view td:first-child:before,
+            table.fold-table > tbody > tr.view th:first-child:before {
+                position: absolute;
+                top: 50%;
+                left: 5px;
+                width: 9px;
+                height: 16px;
+                margin-top: -8px;
+                font: 16px fontawesome;
+                color: #999;
+                content: "+"; /* Plus symbol for closed rows */
+                transition: all 0.3s ease;
+            }
+
+    table.fold-table > tbody > tr.view:nth-child(4n-1) {
+        background: #eee;
+    }
+
+    table.fold-table > tbody > tr.view:hover {
+        background: #eeeeee;
+    }
+
+    table.fold-table > tbody > tr.view.open {
+        background: tomato;
+        color: white;
+    }
+
+        table.fold-table > tbody > tr.view.open td:first-child:before,
+        table.fold-table > tbody > tr.view.open th:first-child:before {
+            content: "-";
+            width: 9px;
+            height: 16px;
+            font: 16px fontawesome;
+            transform: rotate(-180deg);
+            color: #333;
+        }
+
+    table.fold-table > tbody > tr.fold {
+        display: none;
+    }
+
+        table.fold-table > tbody > tr.fold.open {
+            display: table-row;
+        }
+
+    .fold-content {
+        padding: 0.5em;
+    }
+
+        .fold-content h3 {
+            margin-top: 0;
+        }
+
+        .fold-content > table {
+            border: 2px solid #ccc;
+        }
+
+            .fold-content > table > tbody tr:nth-child(even) {
+                background: #eee;
+            }
+
+    .clicked {
+        background-color: green;
+        /* Change to your desired color */
+        color: white;
+    }
+
+    .border-box {
+        border: 2px solid green;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .border-date {
+        border: 2px solid red;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .border-mixed {
+        border: 2px solid;
+        border-image: linear-gradient(to right, #006400, #006400 50%, #8B0000 50%, #8B0000) 1;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .toggleColumn {
+        display: none;
+    }
+</style>
+ 
+<form asp-controller="Home" asp-action="Index" method="post">
+        <div class="row">
+        <div class="col-md-8 border-box">
+            <div class="row">
+        <div class="col-md-6">
+            <label class="form-label">Select Start Date</label>
+            <select asp-for="StartDate" class="form-control" required asp-items="@(new SelectList(Model.EmployeeList, "Value", "Text"))"></select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Select End Date</label>
+            <select asp-for="EndDate" class="form-control" required asp-items="@(new SelectList(Model.EmployeeList2, "Value", "Text"))"></select>
+        </div>
+            </div>
+        </div>
+    
+        <div class="col-md-4 border-date">
+        <label class="form-label">Select Date</label>
+        <select class="form-control" asp-for="Date" id="dateSelect" multiple="true">
+            @foreach (var item in Model.EmployeeList11)
+            {
+                <option value="@item.Value">@item.Text</option>
+            }
+        </select>
+    </div>
+    </div>
+   
+  
+       
+        <div class="border-mixed">
+            <div class="row">
+        <div class="col-md-3">
+            <label class="form-label">Search Employee</label>
+            <select class="form-control searchable-dropdown" asp-for="Name" id="nameDropdown">
+                @foreach (var item in Model.EmployeeList3)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Search State</label>
+            <select class="form-control searchable-dropdown" asp-for="State" id="StateDropdown">
+                @foreach (var item in Model.EmployeeList10)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Search District</label>
+            <select class="form-control searchable-dropdown" asp-for="District" id="districtDropdown">
+                @foreach (var item in Model.EmployeeList4)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Search PU</label>
+            <select class="form-control searchable-dropdown" asp-for="PU" id="PUDropdown">
+                @foreach (var item in Model.EmployeeList5)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+        </div>
+    <div class="row">
+        <div class="col-md-3">
+            <label class="form-label">Search PU Mapped</label>
+            <select class="form-control searchable-dropdown" asp-for="PUMapped" id="PUMappedDropdown">
+                @foreach (var item in Model.EmployeeList6)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Search DM</label>
+            <select class="form-control searchable-dropdown" asp-for="DM" id="DMDropdown">
+                @foreach (var item in Model.EmployeeList7)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Search CSGhead</label>
+            <select class="form-control searchable-dropdown" asp-for="CSGhead" id="CSGheadDropdown">
+                @foreach (var item in Model.EmployeeList9)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Search CSG</label>
+            <select class="form-control searchable-dropdown" asp-for="CSG" id="CSGDropdown">
+                @foreach (var item in Model.EmployeeList8)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+    </div>
+        </div>
+
+   
+    <div class="row">
+        <div class="col-md-6">
+            <br />
+            <input type="submit" name="action" value="Variance" class="btn btn-danger" id="varianceButton" />
+            <input type="submit" value="Search" class="btn btn-success" id="searchButton" />
+            <input type="submit" name="action" value="Revenue" class="btn btn-success" />
+            <input type="submit" name="action" value="Volume" class="btn btn-success" />
+            @if ((bool)(ViewBag.blnRevenue ?? false))
+            {
+                <input type="submit" name="action" value="RevDownload" class="btn btn-primary" />
+            }
+            @if ((bool)(ViewBag.blnVolume ?? false))
+            {
+                <input type="submit" name="action" value="VolDownload" class="btn btn-primary" />
+            }
+            @if (!(bool)(ViewBag.blnRevenue ?? false) && !(bool)(ViewBag.blnVolume ?? false))
+            {
+                <input type="submit" name="action" value="Download" class="btn btn-primary" />
+            }
+            <input type="button" name="action" value="Graph" class="btn btn-warning" id="graphButton" />
+        </div>
+        @* <div class="col-md-3">
+            <label class="form-label">Select Date</label>
+            <select class="form-control" asp-for="Date" id="dateSelect" multiple="true">
+                @foreach (var item in Model.EmployeeList11)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div> *@
+        </div>
+        @* <div class="border-boxs">
+         <select class="form-control" asp-for="Date" id="dateSelect" multiple="true" onchange="filterGraphData(this.value)">
+            @foreach (var item in Model.EmployeeList11)
+            {
+                <option value="@item.Value">@item.Text</option>
+            }
+        </select>  *@
+       
+
+    
+    @*  @Html.Partial("_Dropdowns", Model) *@
+</form>
+@if ((bool)(ViewBag.blnRevVol ?? false))
+{
+    @if (ViewBag.EmployeeList != null && ViewBag.EmployeeList.Count > 0)
+    {
+        <table id="employeeTable" class="table table-bordered">
+            <thead>
+              
+          
+                <tr style="background-color: #add8e6;">
+                    
+                    <th scope="col">State <span id="toggleColumns" style="cursor: pointer;">+</span></th>
+                    <th scope="col" class="toggleColumn">District</th>
+                    <th scope="col" class="toggleColumn">Language</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Joining Date</th>
+                    <th scope="col">PU</th>
+                    <th scope="col">PU Mapped</th>
+                    <th scope="col">DM</th>
+                    <th scope="col">CSG Head</th>
+                    <th scope="col">CSG</th>
+                    @if (ViewBag.blnRevenue)
+                    {
+                        <th scope="col" class="VarIcon">RevVar</th>
+                         <th scope="col">VolVar</th>
+                    }
+                    @if (ViewBag.blnVolume)
+                    {
+                        <th scope="col" class="VarIcon">RevVar</th>
+                        <th scope="col">VolVar</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var employeeDetails in ViewBag.EmployeeList)
+                {
+                    foreach (var employee in employeeDetails.EmployeeData)
+                    {
+                        <tr>
+                           
+                            <td>@employee.State</td>
+                           
+                            <td class="toggleColumn">@employee.District</td>
+                            <td class="toggleColumn">@employee.Language</td>
+                            <td>@employee.Name</td>
+                            <td>@employee.JoiningDate.ToString("yyyy-MM-dd")</td>
+                            <td>@employee.PU</td>
+                            <td>@employee.PUMapped</td>
+                            <td>@employee.DM</td>
+                            <td>@employee.CSGhead</td>
+                            <td>@employee.CSG</td>
+                            @if (ViewBag.blnRevenue)
+                            {
+                                <td>@employee.RevVar</td>
+                                <td>@employee.VolVar</td>
+                            }
+                            @if (ViewBag.blnVolume)
+                            {
+                                 <td>@employee.RevVar</td>
+                                <td>@employee.VolVar</td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+
+}
+@if (!(bool)(ViewBag.blnRevVol ?? false))
+{
+   
+    @if (ViewBag.EmployeeList != null)
+    {
+    <table id="employeeTable" class="table table-bordered">
+        <thead>
+            <tr style="background-color: #add8e6;">
+                <th scope="col">State</th>
+                <th scope="col">District</th>
+                <th scope="col">Language</th>
+                <th scope="col">Name</th>
+                <th scope="col">Joining Date</th>
+                <th scope="col">PU</th>
+                <th scope="col">PU Mapped</th>
+                <th scope="col">DM</th>
+                <th scope="col">CSG Head</th>
+                <th scope="col">CSG</th>
+                <th scope="col" class="VarIcon">RevVar</th>
+                <th scope="col">VolVar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employeeDetails in ViewBag.EmployeeList)
+            {
+                foreach (var employee in employeeDetails.EmployeeData)
+                {
+                    <tr>
+                        <td>
+                            <span class="toggleState" style="cursor: pointer;" onclick="toggleDistricts('@employeeDetails.State')">+</span>
+                            @employeeDetails.State
+                        </td>
+                            <td class="state-@employee.State">@employee.District</td>
+                            <td class="state-@employee.State">@employee.Language</td>
+                        <td>@employee.Name</td>
+                        <td>@employee.JoiningDate.ToString("yyyy-MM-dd")</td>
+                        <td>@employee.PU</td>
+                        <td>@employee.PUMapped</td>
+                        <td>@employee.DM</td>
+                        <td>@employee.CSGhead</td>
+                        <td>@employee.CSG</td>
+                        <td>@employee.RevVar</td>
+                        <td>@employee.VolVar</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+}
+ <canvas id="myChart" width="800" height="400"></canvas>
+
+@section Scripts {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    @* <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+           
+            $('#StartDate, #EndDate').change(function () {
+                var startDate = $('#StartDate').val();
+                var endDate = $('#EndDate').val();
+
+                if (startDate === endDate) {
+                    alert('Please select different end date.');
+                    $('#EndDate').val('');
+                }
+            });
+
+            function checkDate() {
+                var startDate = $('#StartDate').val();
+                var endDate = $('#EndDate').val();
+                if (endDate === '' ) {
+                    alert('Please select Enddate.');
+                    return false;
+                }
+                if (startDate === '') {
+                    alert('Please select Startdate.');
+                    return false;
+                }
+                return true;
+            }
+            $('#searchButton').click(function () {
+                if (checkDate()) {
+                    console.log('Search action performed');
+                }
+            });
+
+
+           
+
+            $('.searchable-dropdown').select2();
+
+        
+
+
+            $('#StateDropdown').change(function () {
+                var selectedState = $(this).val();
+                $.ajax({
+                    url: '@Url.Action("GetDistrictsByState", "Home")',
+                    type: 'GET',
+                    data: { state: selectedState },
+                    dataType: 'json',
+                    success: function (data) {
+                        $('#districtDropdown').empty();
+                        $.each(data, function (index, item) {
+                            $('#districtDropdown').append($('<option>', {
+                                value: item.value,
+                                text: item.text
+                            }));
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+            $('#CSGheadDropdown').change(function () {
+                var selectedCSGHead = $(this).val();
+                $.ajax({
+                    url: '@Url.Action("GetCSGbyCSGhead", "Home")',
+                    type: 'GET',
+                    data: { csgHead: selectedCSGHead },
+                    dataType: 'json',
+                    success: function (data) {
+                        $('#CSGDropdown').empty();
+                        $.each(data, function (index, item) {
+                            $('#CSGDropdown').append($('<option>', {
+                                value: item.value,
+                                text: item.text
+                            }));
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+            $('#PUDropdown').change(function () {
+                var selectedPU = $(this).val();
+                $.ajax({
+                    url: '@Url.Action("GetPUMappedbyPU", "Home")',
+                    type: 'GET',
+                    data: { PU: selectedPU },
+                    dataType: 'json',
+                    success: function (data) {
+                        $('#PUMappedDropdown').empty();
+                        $.each(data, function (index, item) {
+                            $('#PUMappedDropdown').append($('<option>', {
+                                value: item.value,
+                                text: item.text
+                            }));
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+         $('#dateSelect').select2({
+                placeholder: "--Select dates--",
+                allowClear: true,
+                closeOnSelect: false
+            });
+             $('#graphButton').click(function () {
+                // Get the selected dates from the dropdown
+                var selectedDates = $('#dateSelect').val();
+
+                // Check if any date is selected
+                if (selectedDates && selectedDates.length > 0) {
+                    // Redirect to the Graph action with selected dates as query parameters
+                    window.location.href = '@Url.Action("Graph")' + '?dates=' + selectedDates.join(',');
+                } else {
+                    // If no date is selected, display an alert or handle it as needed
+                    alert('Please select at least one date.');
+                }
+            });
+
+        
+
+        $(function () {
+            $(".fold-table tr.view").on("click", function () {
+                $(this).toggleClass("open").next(".fold").toggleClass("open");
+            });
+        });
+
+        
+        function ShowRevVar(Id) {
+            var isHidden = $('#tdRevVar_' + Id).attr('clicked') == 'true' ? true : false;
+            $('#tdRevVar1_' + Id).attr('hidden', isHidden);
+            $('#tdRevVar2_' + Id).attr('hidden', isHidden);
+
+            $('.tdRevVar1_' + Id).attr('hidden', isHidden);
+            $('.tdRevVar2_' + Id).attr('hidden', isHidden);
+            $('#tdRevVar_' + Id).attr('clicked', !isHidden);
+
+            // Toggle button color
+            // var button = $('#tdRevVar_' + Id + ' button');
+            // if (!isHidden) {
+            //     button.addClass('clicked');
+            // } else {
+            //     button.removeClass('clicked');
+            // }
+            var icon = $('#revIcon_' + Id);
+            if (!isHidden) {
+                icon.removeClass('fa-plus').addClass('fa-minus');
+            } else {
+                icon.removeClass('fa-minus').addClass('fa-plus');
+            }
+        }
+
+
+
+        function ShowVolVar(Id) {
+            var isHidden = $('#tdVolVar_' + Id).attr('clicked') == 'true' ? true : false;
+            $('#tdVolVar1_' + Id).attr('hidden',isHidden);
+            $('#tdVolVar2_' + Id).attr('hidden',isHidden);
+
+            $('.tdVolVar1_' + Id).attr('hidden',isHidden);
+            $('.tdVolVar2_' + Id).attr('hidden',isHidden);
+            $('#tdVolVar_' + Id).attr('clicked', !isHidden);
+
+            // Toggle button color
+            var button = $('#tdVolVar_' + Id + ' button');
+            if (!isHidden) {
+                button.addClass('clicked');
+            } else {
+                button.removeClass('clicked');
+            }
+            console.log('ShowCus function called for Id: ' + Id +);
+        }
+
+        // function ShowCus(Id) {
+        //     var isHidden = $('#tdState_' + Id).attr('clicked') === 'true';
+
+        //     // Toggle hidden attribute for header columns
+        //     $('#tdDistrict_' + Id).attr('hidden', !isHidden);
+        //     $('#tdLanguage_' + Id).attr('hidden', !isHidden);
+
+        //     // Toggle hidden attribute for body columns
+        //     $('.tdDistrict_' + Id).attr('hidden', !isHidden);
+        //     $('.tdLanguage_' + Id).attr('hidden', !isHidden);
+
+        //     // Toggle button color if buttons exist inside the td elements
+        //     var button = $('#tdState_' + Id + ' button');
+        //     if (button.length) {
+        //         if (isHidden) {
+        //             button.removeClass('clicked');
+        //         } else {
+        //             button.addClass('clicked');
+        //         }
+        //     }
+
+        //     // Update the clicked attribute
+        //     $('#tdState_' + Id).attr('clicked', !isHidden);
+
+        //     console.log('ShowCus function called for Id: ' + Id + ' with newState: ' + !isHidden);
+        // }
+
+
+
+
+    </script>
+    <script>
+        
+        document.addEventListener("DOMContentLoaded", function () {    
+            var toggleColumns = document.getElementById("toggleColumns");
+            var columns = document.querySelectorAll("th.toggleColumn, td.toggleColumn");   
+            columns.forEach(function (column) {        
+                column.style.display = "none";
+            });
+
+            toggleColumns.addEventListener("click", function () {               
+                columns.forEach(function (column) {
+                    if (column.style.display === "none") {
+                        column.style.display = "table-cell";                       
+                    } else {
+                        column.style.display = "none";                        
+                    }
+                });
+
+                toggleColumns.textContent = toggleColumns.textContent === "+" ? "-" : "+";
+            });
+        });
+    </script>
+    <script>
+        function toggleDistricts(state) {
+            var districts = document.querySelectorAll('.state-' + state);
+            var toggleButton = document.querySelector('.toggleState[onclick*="' + state + '"]');
+
+            districts.forEach(function (district) {
+                if (district.style.display === 'none') {
+                    district.style.display = 'table-cell';
+                } else {
+                    district.style.display = 'none';
+                }
+            });
+
+            toggleButton.textContent = toggleButton.textContent === '+' ? '-' : '+';
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var districts = document.querySelectorAll('td[class^="state-"]');
+            districts.forEach(function (district) {
+                district.style.display = 'none';
+            });
+        });
+        
+    </script>
+    <script>
+        $(document).ready(function () {
+
+            $('#nameDropdown, #districtDropdown, #PUDropdown, #PUMappedDropdown, #DMDropdown, #CSGDropdown, #StateDropdown,#CSGheadDropdown,#CSGDropdown').change(function () {
+                filterTable();
+            });
+        });
+
+        function filterTable() {
+            var nameValue = $('#nameDropdown').val().toLowerCase();
+            var districtValue = $('#districtDropdown').val().toLowerCase();
+            var puValue = $('#PUDropdown').val().toLowerCase();
+            var puMappedValue = $('#PUMappedDropdown').val().toLowerCase();
+            var dmValue = $('#DMDropdown').val().toLowerCase();
+            var csgValue = $('#CSGDropdown').val().toLowerCase();
+            var StateValue = $('#StateDropdown').val().toLowerCase();
+            var CSGheadValue = $('#CSGheadDropdown').val().toLowerCase();
+            var CSGValue = $('#CSGDropdown').val().toLowerCase();
+
+            $('#employeeTable tbody tr').each(function () {
+                var text = $(this).text().toLowerCase();
+                var nameMatch = nameValue === '' || text.indexOf(nameValue) !== -1;
+                var districtMatch = districtValue === '' || text.indexOf(districtValue) !== -1;
+                var puMatch = puValue === '' || text.indexOf(puValue) !== -1;
+                var puMappedMatch = puMappedValue === '' || text.indexOf(puMappedValue) !== -1;
+                var dmMatch = dmValue === '' || text.indexOf(dmValue) !== -1;
+                var csgMatch = csgValue === '' || text.indexOf(csgValue) !== -1;
+                var StateMatch = StateValue === '' || text.indexOf(StateValue) !== -1;
+                var CSGheadMatch = CSGheadValue === '' || text.indexOf(CSGheadValue) !== -1;
+                var CSGMatch = CSGValue === '' || text.indexOf(CSGValue) !== -1;
+
+                if (nameMatch && districtMatch && puMatch && puMappedMatch && dmMatch && csgMatch && StateMatch && CSGheadMatch && CSGMatch) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    </script>
+   @*  <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const viewRows = document.querySelectorAll('tr.view');
+            viewRows.forEach(viewRow => {
+                viewRow.addEventListener('click', function () {
+                    const foldRow = this.nextElementSibling;
+                    if (foldRow.classList.contains('fold')) {
+                        foldRow.classList.toggle('open');
+                        this.classList.toggle('open');
+                    }
+                });
+            });
+
+           
+        });
+
+        function ShowRevVar(groupId) {
+            const elements = document.querySelectorAll(`.tdRevVar1_${groupId}, .tdRevVar2_${groupId}`);
+            elements.forEach(element => {
+                element.hidden = !element.hidden;
+            });
+        }
+
+        function ShowVolVar(groupId) {
+            const elements = document.querySelectorAll(`.tdVolVar1_${groupId}, .tdVolVar2_${groupId}`);
+            elements.forEach(element => {
+                element.hidden = !element.hidden;
+            });
+        }
+        //  function ShowCus(groupId) {
+        //     const elements = document.querySelectorAll(`.tdDistrict_${groupId}, .tdLanguage_${groupId}`);
+        //     elements.forEach(element => {
+        //         element.hidden = !element.hidden;
+        //     });
+        // }
+        
+
+    </script>
+ *@
+}
